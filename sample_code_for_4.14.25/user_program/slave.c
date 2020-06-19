@@ -34,7 +34,8 @@ int main (int argc, char* argv[])
 		struct timeval end;
 		double trans_time; //calulate the time between the device is opened and it is closed
 		char *kernel_address, *file_address;
-	
+
+		strcpy(file_name, argv[2+i]);
 	
 		if( (dev_fd = open("/dev/slave_device", O_RDWR)) < 0)//should be O_RDWR for PROT_WRITE when mmap()
 		{
