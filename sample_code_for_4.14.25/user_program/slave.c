@@ -20,7 +20,6 @@ int main (int argc, char* argv[])
 	char ip[20];
 
 	int dev_fd, file_fd;// the fd for the device and the fd for the input file
-	size_t ret, file_size = 0, data_size = -1;
 	char file_name[50];
 	struct timeval start;
 	struct timeval end;
@@ -34,6 +33,7 @@ int main (int argc, char* argv[])
 	for (int i=0; i<file_num; ++i)
 	{
 
+		size_t ret, file_size = 0, data_size = -1;
 		strcpy(file_name, argv[2+i]);
 	
 		if( (dev_fd = open("/dev/slave_device", O_RDWR)) < 0)//should be O_RDWR for PROT_WRITE when mmap()
