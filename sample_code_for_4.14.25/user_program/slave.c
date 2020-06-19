@@ -19,21 +19,20 @@ int main (int argc, char* argv[])
 	char method[20];
 	char ip[20];
 
+	int dev_fd, file_fd;// the fd for the device and the fd for the input file
+	size_t ret, file_size = 0, data_size = -1;
+	char file_name[50];
+	struct timeval start;
+	struct timeval end;
+	double trans_time; //calulate the time between the device is opened and it is closed
+	char *kernel_address, *file_address;
+
 	file_num = atoi(argv[1]);
 	strcpy(method, argv[2+file_num]);
 	strcpy(ip, argv[3+file_num]);
 
 	for (int i=0; i<file_num; ++i)
 	{
-		int dev_fd, file_fd;// the fd for the device and the fd for the input file
-		size_t ret, file_size = 0, data_size = -1;
-		char file_name[50];
-		char method[20];
-		char ip[20];
-		struct timeval start;
-		struct timeval end;
-		double trans_time; //calulate the time between the device is opened and it is closed
-		char *kernel_address, *file_address;
 
 		strcpy(file_name, argv[2+i]);
 	
@@ -49,14 +48,16 @@ int main (int argc, char* argv[])
 			return 1;
 		}
 	
+    		fprintf(stderr, "I am here!\n");	    
 		if(ioctl(dev_fd, 0x12345677, ip) == -1)	//0x12345677 : connect to master in the device
 		{
 			perror("ioclt create slave socket error\n");
 			return 1;
 		}
+    		fprintf(stderr, "I am here, again!\n");	    
 	
 	    write(1, "ioctl success\n", 14);
-	
+
 		switch(method[0])
 		{
 			case 'f'://fcntl : read()/write()
