@@ -31,7 +31,7 @@
 
 
 #define BUF_SIZE 512
-
+#define MMAP_SIZE (4096 * 64)
 
 
 
@@ -59,13 +59,41 @@ static mm_segment_t old_fs;
 static ksocket_t sockfd_cli;//socket to the master server
 static struct sockaddr_in addr_srv; //address of the master server
 
+void mmap_close(struct vm_area_struct *vma){
+    return;
+}
+
+void mmap_open(struct vm_area_struct *vma){
+    return;
+}
+
+static struct vm_operations_struct my_vm_ops = {
+    .open = mmap_open,
+    .close = mmap_close
+};
+
+static int my_mmap(struct file *filp, struct vm_area_struct *vma){
+	unsigned long pfn_start = virt_to_phys(filp->private_data) >> PAGE_SHIFT;
+	unsigned long size = vma->vm_end - vma->vm_start;
+
+	if(remap_pfn_range(vma, vma->vm_start, pfn_start, size, vma->vm_page_prot) < 0){
+		printk("remap_pfn_range failed in slave device\n");
+		return -EIO;
+	}
+
+	vma->vm_flags |= VM_RESERVED;
+	vma->vm_ops = &my_vm_ops;
+	vma->vm_private_data = filp->private_data;
+	return 0;
+}
 //file operations
 static struct file_operations slave_fops = {
 	.owner = THIS_MODULE,
 	.unlocked_ioctl = slave_ioctl,
 	.open = slave_open,
 	.read = receive_msg,
-	.release = slave_close
+	.release = slave_close,
+	.mmap = my_mmap
 };
 
 //device info
@@ -101,11 +129,13 @@ static void __exit slave_exit(void)
 
 int slave_close(struct inode *inode, struct file *filp)
 {
+	kfree(filp -> private_data);
 	return 0;
 }
 
 int slave_open(struct inode *inode, struct file *filp)
 {
+	filp -> private_data = kmalloc(MMAP_SIZE, GFP_KERNEL);
 	return 0;
 }
 static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long ioctl_param)
@@ -114,7 +144,7 @@ static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long
 
 	int addr_len ;
 	unsigned int i;
-	size_t len, data_size = 0;
+	size_t len = 0, data_size = 0;
 	char *tmp, ip[20], buf[BUF_SIZE];
 	struct page *p_print;
 	unsigned char *px;
@@ -127,7 +157,7 @@ static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
 
-    printk("slave device ioctl");
+    printk("slave device ioctl\n");
 
 	switch(ioctl_num){
 		case slave_IOCTL_CREATESOCK:// create socket and connect to master
@@ -159,11 +189,25 @@ static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long
 			tmp = inet_ntoa(&addr_srv.sin_addr);
 			printk("connected to : %s %d\n", tmp, ntohs(addr_srv.sin_port));
 			kfree(tmp);
-			printk("kfree(tmp)");
+			printk("kfree(tmp)\n");
 			ret = 0;
 			break;
 		case slave_IOCTL_MMAP:
-
+			//do{
+				ret = krecv(sockfd_cli, file -> private_data, MMAP_SIZE, MSG_WAITALL);
+				printk("buf = %s\n", buf);
+				printk("krecv len: %ld\n", ret);
+				/*if(len > 0){
+					printk("file: %llu, buf: %s", file->private_data+data_size, buf);
+					memcpy( (file -> private_data + data_size), buf, len);
+					data_size += len;
+					ret = data_size;
+				}*/
+				if(ret < 0){
+					printk(" There is something wrong during \" krecv \" of slave_device.c !\n");
+					break;
+				}
+			//}while(ret>0);
 			break;
 
 		case slave_IOCTL_EXIT:
@@ -186,7 +230,7 @@ static long slave_ioctl(struct file *file, unsigned int ioctl_num, unsigned long
 			break;
 	}
     set_fs(old_fs);
-
+	printk("ret: %ld", ret);
 	return ret;
 }
 
@@ -204,6 +248,8 @@ ssize_t receive_msg(struct file *filp, char *buf, size_t count, loff_t *offp )
 
 
 
+
 module_init(slave_init);
 module_exit(slave_exit);
 MODULE_LICENSE("GPL");
+
