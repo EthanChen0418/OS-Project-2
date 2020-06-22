@@ -31,6 +31,7 @@
 #define KSOCKET_AUTHOR	"msn : song.xian-guang@hotmail.com\n"\
 						"blog: http://sxg.cublog.cn"
 #define KSOCKET_DATE	"2008-05-15"
+#define ASYNC
 
 MODULE_AUTHOR(KSOCKET_AUTHOR);
 MODULE_DESCRIPTION(KSOCKET_NAME"-"KSOCKET_VERSION"\n"KSOCKET_DESCPT);
