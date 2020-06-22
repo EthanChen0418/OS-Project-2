@@ -37,7 +37,6 @@ int main (int argc, char* argv[])
 	for (int i=0; i<file_num; ++i)
 	{
 
-		gettimeofday(&start ,NULL);
 		size_t ret = 0, file_size = 0, data_size = 0;
 		strcpy(file_name, argv[2+i]);
 	
@@ -59,6 +58,7 @@ int main (int argc, char* argv[])
 		}	    
 	
 	    	write(1, "ioctl success\n", 14);
+		gettimeofday(&start ,NULL);
 
 		switch(method[0])
 		{
@@ -121,8 +121,8 @@ int main (int argc, char* argv[])
 			return 1;
 		}
 		gettimeofday(&end, NULL);
-		trans_time = (end.tv_sec - start.tv_sec)*1000 + (end.tv_usec - start.tv_usec)*0.0001;
-		printf("Transmission time: %lf ms, File size: %d bytes\n", trans_time, file_size / 8);
+		trans_time = (end.tv_sec - start.tv_sec)*1000 + (end.tv_usec - start.tv_usec)*0.001;
+		printf("Transmission time: %lf ms, File size: %d bytes\n", trans_time, file_size);
 
 
 		close(file_fd);
