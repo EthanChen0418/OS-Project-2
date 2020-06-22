@@ -74,6 +74,10 @@ ksocket_t ksocket(int domain, int type, int protocol)
 		printk(KERN_INFO "sk or sk->sk is NULL\n");
 	}
 	*/
+
+	#ifdef ASYNC
+    sk->flags |= FASYNC;
+	#endif
 	
 	printk("sock_create sk= 0x%p\n", sk);
 	
@@ -135,6 +139,10 @@ ksocket_t kaccept(ksocket_t socket, struct sockaddr *address, int *address_len)
 		return NULL;
 	if (!new_sk)
 		return NULL;
+
+	#ifdef ASYNC
+    sk->flags |= FASYNC;
+	#endif
 	
 	new_sk->type = sk->type;
 	new_sk->ops = sk->ops;
