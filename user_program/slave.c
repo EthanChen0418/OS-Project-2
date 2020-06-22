@@ -78,7 +78,7 @@ int main (int argc, char* argv[])
 					//printf("fffirst_ret = %ld\n", ret);
 					//printf("pass!\n");
 					ret = ioctl(dev_fd, SLAVE_MMAP);
-					printf("first_ret = %ld", ret);
+					//printf("first_ret = %ld", ret);
 					if(ret > 0){
 						int deg;
 						if((deg = posix_fallocate(file_fd, file_size, ret)) != 0){
@@ -86,7 +86,7 @@ int main (int argc, char* argv[])
 							//fprintf(stderr, "deg = %d data_size = %ull ret = %ld", deg, data_size, ret);
 							exit(-1);
 						}
-						printf("file_fd: %d file_size: %ld\n", file_fd, file_size);
+						//printf("file_fd: %d file_size: %ld\n", file_fd, file_size);
 						if((file_address = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, file_fd, file_size)) == MAP_FAILED){
 							perror("slave file mmap: ");
 							exit(-1);
@@ -96,7 +96,7 @@ int main (int argc, char* argv[])
 							exit(-1);
 						}
 						file_size += ret;
-						printf("data_size: %ld, ret: %ld\n", file_size, ret);
+						//printf("data_size: %ld, ret: %ld\n", file_size, ret);
 						memcpy(file_address, kernel_address, ret);
 						munmap(file_address, MMAP_SIZE);
 						munmap(kernel_address, MMAP_SIZE);		
