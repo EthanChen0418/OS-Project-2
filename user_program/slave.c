@@ -16,6 +16,7 @@
 #define SLAVE_CREATE_SOCKET 0x12345677
 #define SLAVE_MMAP 0x12345678
 #define SLAVE_DISCONNECT 0x12345679
+#define SLAVE_DEFAULT 0x73168
 int main (int argc, char* argv[])
 {
 	char buf[BUF_SIZE];
@@ -98,6 +99,12 @@ int main (int argc, char* argv[])
 						file_size += ret;
 						//printf("data_size: %ld, ret: %ld\n", file_size, ret);
 						memcpy(file_address, kernel_address, ret);
+
+						if(ioctl(dev_fd, SLAVE_DEFAULT, kernel_address) == -1){
+							perror("slave ioctl default: ");
+							return 1;
+						}
+
 						munmap(file_address, MMAP_SIZE);
 						munmap(kernel_address, MMAP_SIZE);		
 
